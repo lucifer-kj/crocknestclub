@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import prismadb from '@/lib/prismadb';
-import { cache } from '@/lib/cache';
-import { rateLimiters } from '@/lib/rate-limit';
 
 export async function GET() {
   const startTime = Date.now();
@@ -28,23 +26,29 @@ export async function GET() {
     try {
       await prismadb.$queryRaw`SELECT 1`;
       health.checks.database = 'healthy';
+      console.log('Health check: Database connection successful');
     } catch (error) {
       health.checks.database = 'unhealthy';
       health.status = 'degraded';
+      console.error('Health check: Database connection failed:', error);
     }
 
     // Check cache status
     try {
+      const { cache } = await import('@/lib/cache');
       const cacheStats = cache.getStats();
       health.checks.cache = 'healthy';
       health.metrics.cacheStats = cacheStats;
+      console.log('Health check: Cache status successful');
     } catch (error) {
       health.checks.cache = 'unhealthy';
       health.status = 'degraded';
+      console.error('Health check: Cache status failed:', error);
     }
 
     // Check rate limiters
     try {
+      const { rateLimiters } = await import('@/lib/rate-limit');
       const rateLimitStats = Object.entries(rateLimiters).map(([name, limiter]) => ({
         name,
         // Access private properties for stats (in production, add public methods)
@@ -52,9 +56,11 @@ export async function GET() {
       }));
       health.checks.rateLimiters = 'healthy';
       health.metrics.rateLimitStats = rateLimitStats;
+      console.log('Health check: Rate limiters status successful');
     } catch (error) {
       health.checks.rateLimiters = 'unhealthy';
       health.status = 'degraded';
+      console.error('Health check: Rate limiters status failed:', error);
     }
 
     // Determine overall status
@@ -68,6 +74,7 @@ export async function GET() {
   } catch (error) {
     health.status = 'unhealthy';
     health.checks.database = 'error';
+    console.error('Health check: Overall error:', error);
   }
 
   // Calculate response time

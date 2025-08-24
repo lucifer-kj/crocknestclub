@@ -6,12 +6,15 @@ import prismadb from "@/lib/prismadb";
  */
 export async function getOrCreateUser(clerkId: string, email?: string) {
   try {
+    console.log('getOrCreateUser: Starting with clerkId:', clerkId)
+    
     // First, try to find existing user
     let user = await prismadb.user.findUnique({
       where: { clerkId }
     });
 
     if (!user) {
+      console.log('getOrCreateUser: User not found, creating new user...')
       // Create user if they don't exist
       user = await prismadb.user.create({
         data: {
@@ -19,12 +22,14 @@ export async function getOrCreateUser(clerkId: string, email?: string) {
           email: email || `user-${clerkId}@temp.com`,
         }
       });
-      console.log('Created new user:', user.id);
+      console.log('getOrCreateUser: Created new user:', user.id);
+    } else {
+      console.log('getOrCreateUser: Found existing user:', user.id);
     }
 
     return user;
   } catch (error) {
-    console.error('Error in getOrCreateUser:', error);
+    console.error('getOrCreateUser: Error:', error);
     throw error;
   }
 }

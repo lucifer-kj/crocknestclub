@@ -4,10 +4,11 @@ import * as z from "zod"
 import axios from "axios"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 
 import { useStoreModal } from "@/hooks/use-store-modal"
+import { useUser } from "@clerk/nextjs"
 import { Modal } from "@/components/ui/modal"
 import { 
   Form, 
@@ -28,8 +29,16 @@ const formSchema = z.object({
 
 export const StoreModal = () => {
   const storeModal = useStoreModal()
+  const { user, isLoaded } = useUser()
 
   const [loading, setLoading] = useState(false)
+
+  // Add debugging for authentication
+  useEffect(() => {
+    console.log('StoreModal: Modal state:', storeModal.isOpen)
+    console.log('StoreModal: User loaded:', isLoaded)
+    console.log('StoreModal: User:', user?.id)
+  }, [storeModal.isOpen, isLoaded, user])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,15 +47,38 @@ export const StoreModal = () => {
     }
   })
 
+  // Add form debugging
+  useEffect(() => {
+    console.log('StoreModal: Form values:', form.getValues())
+    console.log('StoreModal: Form errors:', form.formState.errors)
+  }, [form.formState.errors])
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true)
+      console.log('Creating store with values:', values)
+      console.log('Current user:', user?.id)
+      console.log('User loaded:', isLoaded)
 
       const response = await axios.post('/api/stores', values)
+      console.log('Store created successfully:', response.data)
 
       window.location.assign(`/${response.data.id}`)
-    } catch (error) {
-      toast.error("Something went wrong.")
+    } catch (error: any) {
+      console.error('Store creation error:', error)
+      
+      // Better error handling
+      if (error.response) {
+        // Server responded with error status
+        const errorMessage = error.response.data || `Error: ${error.response.status}`
+        toast.error(errorMessage)
+      } else if (error.request) {
+        // Request was made but no response received
+        toast.error("No response from server. Please check your connection.")
+      } else {
+        // Something else happened
+        toast.error(error.message || "Something went wrong.")
+      }
     } finally {
       setLoading(false)
     }

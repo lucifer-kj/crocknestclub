@@ -9,11 +9,16 @@ const SetupPage = () => {
   const isOpen = useStoreModal((state) => state.isOpen);
 
   useEffect(() => {
+    console.log('SetupPage: Effect running, isOpen:', isOpen);
     if (!isOpen) {
+      console.log('SetupPage: Opening modal');
       onOpen();
+    } else {
+      console.log('SetupPage: Modal already open');
     }
   }, [isOpen, onOpen]);
 
+  console.log('SetupPage: Rendering, isOpen:', isOpen);
   return null;
 };
 
