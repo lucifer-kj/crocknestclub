@@ -44,7 +44,8 @@ export const StoreModal = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-    }
+    },
+    mode: "onChange" // Enable real-time validation
   })
 
   // Add form debugging
@@ -53,12 +54,25 @@ export const StoreModal = () => {
     console.log('StoreModal: Form errors:', form.formState.errors)
   }, [form.formState.errors])
 
+  // Add real-time form value watching
+  const watchedName = form.watch('name')
+  useEffect(() => {
+    console.log('StoreModal: Watched name value:', watchedName)
+    console.log('StoreModal: Form is valid:', form.formState.isValid)
+    console.log('StoreModal: Form can submit:', form.formState.isValid && !loading)
+  }, [watchedName, form.formState.isValid, loading])
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true)
       console.log('Creating store with values:', values)
       console.log('Current user:', user?.id)
       console.log('User loaded:', isLoaded)
+      console.log('Form state before submission:', {
+        isValid: form.formState.isValid,
+        errors: form.formState.errors,
+        values: form.getValues()
+      })
 
       const response = await axios.post('/api/stores', values)
       console.log('Store created successfully:', response.data)
@@ -105,7 +119,12 @@ export const StoreModal = () => {
                       <Input
                         placeholder="E-Commerce"
                         disabled={loading}
-                        {...field} />
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -120,7 +139,7 @@ export const StoreModal = () => {
                   Cancel
                 </Button>
                 <Button
-                  disabled={loading}
+                  disabled={!form.formState.isValid || loading}
                   type="submit"
                 >
                   Continue
