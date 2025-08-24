@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import { ModalProvider } from '@/providers/modal-provider'
 import { ToastProvider } from '@/providers/toast-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
+import { SetupGuide } from '@/components/ui/setup-guide'
 
 import './globals.css'
 
@@ -19,6 +20,28 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Check if critical environment variables are present
+  const hasEnvVars = !!(
+    process.env.DATABASE_URL &&
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY
+  );
+  
+  if (!hasEnvVars) {
+    const missingVars = [];
+    if (!process.env.DATABASE_URL) missingVars.push('DATABASE_URL');
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) missingVars.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY');
+    if (!process.env.CLERK_SECRET_KEY) missingVars.push('CLERK_SECRET_KEY');
+    
+    return (
+      <html lang="en">
+        <body className={inter.className}>
+          <SetupGuide missingVars={missingVars} />
+        </body>
+      </html>
+    );
+  }
+
   return (
     <ClerkProvider>
       <html lang="en">

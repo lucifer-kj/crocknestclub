@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs"
 
 import prismadb from "@/lib/prismadb"
+import { getOrCreateUser } from "@/lib/user-utils"
 
 export async function POST(
   req: Request
@@ -18,10 +19,13 @@ export async function POST(
       return new NextResponse("Name is required", { status: 400 })
     }
 
+    // Get or create user record
+    const user = await getOrCreateUser(userId);
+
     const store = await prismadb.store.create({
       data: {
         name,
-        userId
+        userId: user.id
       }
     })
 

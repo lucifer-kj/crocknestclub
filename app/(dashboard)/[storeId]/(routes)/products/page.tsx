@@ -11,14 +11,38 @@ const ProductsPage = async ({
 }: {
   params: { storeId: string }
 }) => {
+  // Optimized query with all related data in a single request
   const products = await prismadb.product.findMany({
     where: {
       storeId: params.storeId
     },
     include: {
-      category: true,
-      size: true,
-      color: true
+      category: {
+        select: {
+          id: true,
+          name: true
+        }
+      },
+      size: {
+        select: {
+          id: true,
+          name: true
+        }
+      },
+      color: {
+        select: {
+          id: true,
+          name: true,
+          value: true
+        }
+      },
+      images: {
+        select: {
+          id: true,
+          url: true
+        },
+        take: 1 // Only get first image for list view
+      }
     },
     orderBy: {
       createdAt: 'desc'

@@ -33,6 +33,7 @@ import { useParams, useRouter } from "next/navigation"
 import { AlertModal } from "@/components/modals/alert-modal"
 import ImageUpload from "@/components/ui/image-upload"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Loading } from "@/components/ui/loading"
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -309,8 +310,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      // @ts-ignore
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked as boolean)}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -332,8 +332,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      // @ts-ignore
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked as boolean)}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -349,7 +348,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
           <Button disabled={loading} className="ml-auto" type="submit">
-            {action}
+            {loading ? (
+              <>
+                <Loading size="sm" className="mr-2" />
+                {action}...
+              </>
+            ) : (
+              action
+            )}
           </Button>
         </form>
       </Form>
