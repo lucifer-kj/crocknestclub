@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { MainNav } from "@/components/main-nav"
 import StoreSwitcher from "@/components/store-switcher"
 import prismadb from "@/lib/prismadb"
+import { getUserByClerkId } from "@/lib/user-utils"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 const Navbar = async () => {
@@ -13,9 +14,17 @@ const Navbar = async () => {
     redirect("/sign-in")
   }
 
+  // Get the database user record using Clerk ID
+  const user = await getUserByClerkId(userId);
+  
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  // Get stores using database user ID
   const stores = await prismadb.store.findMany({
     where: {
-      userId
+      userId: user.id // Use database user ID, not Clerk ID
     }
   })
 
