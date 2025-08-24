@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Store, Check, ChevronsUpDown, PlusCircle, StoreIcon } from "lucide-react";
+import { Check, ChevronsUpDown, PlusCircle, Store as StoreIcon } from "lucide-react";
+import { Store } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import {
