@@ -1,72 +1,35 @@
 "use client"
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, PlusCircle, Store as StoreIcon } from "lucide-react";
-import { Store } from "@prisma/client";
+import { useRouter } from "next/navigation"
+import { Store as StoreIcon, ChevronsUpDown, PlusCircle } from "lucide-react"
+import { Store } from "@prisma/client"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Check, Command } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Command as CommandPrimitive, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
 
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator
-} from "@/components/ui/command";
-
-type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
-
-interface StoreSwitcherProps extends PopoverTriggerProps {
+interface StoreSwitcherProps {
   items: Store[];
-};
+}
 
-export default function StoreSwitcher({
-  className,
-  items = []
-}: StoreSwitcherProps) {
-  const params = useParams()
+export default function StoreSwitcher({ items }: StoreSwitcherProps) {
   const router = useRouter()
 
-  const formattedItems = items.map((item) => ({
-    label: item.name,
-    value: item.id
-  }))
-
-  const currentStore = formattedItems.find((item) => item.value === params.storeId)
-
-  const [open, setOpen] = useState(false)
-
-  const onStoreSelect = (store: { value: string, label: string }) => {
-    setOpen(false)
-    router.push(`/${store.value}`)
+  const onStoreSelect = (store: Store) => {
+    router.push(`/${store.id}`)
   }
 
   const onCreateStore = () => {
-    setOpen(false)
-    router.push('/') // Redirect to setup page
+    router.push('/')
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          role="combobox"
-          aria-expanded={open}
-          aria-label="Select a store"
-          className={cn("w-[200px] justify-between", className)}
-        >
+        <Button variant="outline" size="sm" role="combobox" aria-expanded={false} aria-label="Select a store" className="w-[200px] justify-between">
           <StoreIcon className="mr-2 h-4 w-4" />
-          {currentStore?.label}
+          Current Store
           <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -76,22 +39,11 @@ export default function StoreSwitcher({
             <CommandInput placeholder="Search store..." />
             <CommandEmpty>No store found.</CommandEmpty>
             <CommandGroup heading="Stores">
-              {formattedItems.map((store) => (
-                <CommandItem
-                  key={store.value}
-                  onSelect={() => onStoreSelect(store)}
-                  className="text-sm"
-                >
+              {items.map((item) => (
+                <CommandItem key={item.id} onSelect={() => onStoreSelect(item)} className="text-sm">
                   <StoreIcon className="mr-2 h-4 w-4" />
-                  {store.label}
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      currentStore?.value === store.value
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
+                  {item.name}
+                  <Check className={cn("ml-auto h-4 w-4", "opacity-0")} />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -99,10 +51,8 @@ export default function StoreSwitcher({
           <CommandSeparator />
           <CommandList>
             <CommandGroup>
-              <CommandItem
-                onSelect={onCreateStore}
-              >
-                <PlusCircle className="mr-2 h-5 w-5" />
+              <CommandItem onSelect={onCreateStore}>
+                <PlusCircle className="mr-2 h-4 w-4" />
                 Create Store
               </CommandItem>
             </CommandGroup>
